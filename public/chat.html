@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.io Simple Chat</title>
+  <link rel="stylesheet" href="/css/demo.css">
+  <style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #36393f;
+        color: #fff;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        display: flex;
+        height: 100vh;
+    }
+
+    .sidebar {
+        flex: 0 0 72px;
+        background-color: #2f3136;
+        padding: 20px;
+    }
+
+    .sidebar h4 {
+        margin-bottom: 15px;
+        color: #fff;
+    }
+
+    .content {
+        flex: 1;
+        padding: 20px;
+    }
+
+    .messages__history {
+        overflow-y: auto;
+        max-height: calc(100vh - 300px);
+    }
+
+    .inbox__messages {
+        margin-top: 20px;
+    }
+
+    .message_form {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .message_form__input {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #40444b;
+        color: #fff;
+        margin-right: 10px;
+    }
+
+    .message_form__button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #7289da;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .message_form__button:hover {
+        background-color: #677bc4;
+    }
+
+    .change_username__form {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+    }
+
+    .change_username__input {
+        padding: 5px;
+        border: none;
+        border-radius: 5px;
+        background-color: #40444b;
+        color: #fff;
+        margin-right: 10px;
+    }
+
+    .change_username__button {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #7289da;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .change_username__button:hover {
+        background-color: #677bc4;
+    }
+
+    .active_users {
+        color: #ccc;
+    }
+
+    .message {
+        display: flex;
+        max-width: 70%;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        padding: 10px;
+        align-self: flex-start;
+        position: relative;
+    }
+
+    .message.sent {
+        align-self: flex-end;
+    }
+
+    .message__avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .message__content {
+        background-color: #7289da;
+        padding: 10px;
+        border-radius: 10px;
+        color: #fff;
+        position: relative;
+    }
+
+    .message__info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+        font-size: 12px;
+        color: #ccc;
+    }
+
+    .sent .message__content {
+        background-color: #7289da;
+    }
+
+    .received .message__content {
+        background-color: #7289da;
+    }
+
+    .highlight {
+        background-color: #4b4f57;
+    }
+
+    .message__indicator {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 10px;
+        height: 10px;
+        background-color: #7289da;
+        border-radius: 50%;
+    }
+
+    .sent .message__indicator {
+        right: 0;
+        left: unset;
+    }
+
+    .active_user_count {
+        font-size: 12px;
+        margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="inbox__people">
+        <h4>Active Users</h4>
+        <div class="active_users"></div> <!-- Display active users here -->
+        <div class="active_user_count">0 active users</div>
+        <div class="change_username__form">
+          <input type="text" class="change_username__input" placeholder="Enter new username">
+          <button class="change_username__button">Change Username</button>
+        </div>
+      </div>
+      <a href="home.html">Home</a> <!-- Home button -->
+    </div>
+    <div class="content">
+      <div class="messages__history">
+        <!-- Messages will appear here -->
+      </div>
+      <form class="message_form">
+        <input type="text" class="message_form__input" placeholder="Type a message">
+        <button class="message_form__button" type="submit">Enter</button>
+      </form>
+    </div>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/client.js"></script>
+  <script>
+    let username = ''; // Initialize the username variable
+
+    // Function to update active users list
+    const updateActiveUsers = (users) => {
+      const activeUsersContainer = document.querySelector('.active_users');
+      const activeUserCount = document.querySelector('.active_user_count');
+      activeUsersContainer.innerHTML = '';
+      users.forEach(user => {
+        const userElement = document.createElement('div');
+        userElement.textContent = user;
+        activeUsersContainer.appendChild(userElement);
+      });
+      activeUserCount.textContent = `${users.length} active users`;
+    };
+
+    // Event listener for the "keyup" event on the username input field
+    document.querySelector('.change_username__input').addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        // Set the username when "Enter" is pressed
+        username = e.target.value.trim();
+        // Clear the input field
+        e.target.value = '';
+        // Update active users list
+        updateActiveUsers([username]);
+      }
+    });
+
+    document.querySelector('.message_form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const messageInput = document.querySelector('.message_form__input');
+      const message = messageInput.value.trim();
+      if (message && username) {
+        sendMessage(username, message);
+        messageInput.value = '';
+      }
+    });
+
+    function sendMessage(username, message) {
+      const messagesHistory = document.querySelector('.messages__history');
+      const newMessage = document.createElement('div');
+      newMessage.classList.add('message', 'sent');
+      newMessage.innerHTML = `
+        <div class="message__content">
+          <div class="message__info">
+            <span>${username}</span>
+            <span>${getCurrentTime()}</span>
+          </div>
+          <p>${message}</p>
+          <div class="message__indicator"></div>
+        </div>`;
+      messagesHistory.appendChild(newMessage);
+    }
+
+    function getCurrentTime() {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    // Event listener for changing username
+    document.querySelector('.change_username__button').addEventListener('click', function() {
+      const newUsernameInput = document.querySelector('.change_username__input');
+      const newUsername = newUsernameInput.value.trim();
+      if (newUsername) {
+        // Replace the username in chat messages
+        const messages = document.querySelectorAll('.messages__history .message');
+        messages.forEach(message => {
+          const usernameSpan = message.querySelector('.message__info span:first-child');
+          if (usernameSpan.textContent === username) {
+            usernameSpan.textContent = newUsername;
+          }
+        });
+        username = newUsername;
+        newUsernameInput.value = '';
+        // Update active users list
+        updateActiveUsers([username]);
+      }
+    });
+
+    // Dummy function to simulate updating active users (Replace with actual logic)
+    const dummyUpdateActiveUsers = () => {
+      const users = []; // No placeholder active users
+      updateActiveUsers(users);
+    };
+
+    // Call the dummy function initially (replace this with actual logic to get active users)
+    dummyUpdateActiveUsers();
+  </script>
+  <a href="index.html">Home</a> <!-- Home button -->
+</body>
+</html>
+
+
+
+
+

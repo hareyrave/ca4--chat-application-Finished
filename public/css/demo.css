@@ -1,0 +1,108 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f0f2f5; /* WhatsApp background color */
+}
+
+.sidenav {
+    height: 100%;
+    width: 72px; /* Adjust as needed */
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #128C7E; /* WhatsApp side navigation color */
+    overflow-x: hidden;
+}
+
+.inbox__people {
+    color: white;
+    padding: 16px;
+    font-weight: bold; /* WhatsApp active user text */
+    font-size: 14px; /* WhatsApp active user text size */
+}
+
+.sidenav a {
+    color: white;
+    padding: 12px; /* WhatsApp side navigation link padding */
+    text-decoration: none;
+    display: flex; /* Align icons vertically */
+    align-items: center; /* Align icons vertically */
+    justify-content: center; /* Center icons horizontally */
+}
+
+.sidenav a:hover {
+    background-color: #075e54; /* WhatsApp side navigation link hover color */
+}
+
+.content {
+    margin-left: 72px; /* Adjust as needed */
+    padding: 20px;
+}
+
+/* Style for the main chat area */
+.chat__container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    height: calc(100vh - 40px); /* Adjust to fit the screen */
+    overflow-y: scroll; /* Enable scrolling for long chats */
+}
+
+.message {
+    background-color: #dcf8c6; /* WhatsApp message bubble background color */
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    max-width: 70%; /* Max width for the message bubble */
+}
+
+.message.sender {
+    background-color: #e2e2e2; /* WhatsApp sender message bubble background color */
+    align-self: flex-end; /* Align sender messages to the right */
+}
+
+.message__text {
+    margin: 0;
+    font-size: 14px;
+}
+
+.message__time {
+    font-size: 12px;
+    color: #999;
+}
+
+/* Define the primary colors for your application */
+:root {
+  --primary-color: #128C7E;
+  --secondary-color: #dcf8c6;
+  --sender-color: #e2e2e2;
+  --background-color: #f0f2f5;
+}
+
+/* Define the font size for your application */
+:root {
+  --font-size: 14px;
+}
+
+/* Define the padding for your application */
+:root {
+  --padding: 10px 15px;
+}
+
+@media (max-width: 768px) {
+  .chat__container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .message {
+    max-width: 100%;
+  }
+}
